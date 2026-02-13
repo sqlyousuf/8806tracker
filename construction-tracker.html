@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8806 Construction Payment Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin-bottom: 16px;
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 20px;
+            line-height: 1.3;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        .summary-card.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .summary-card.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .summary-card.blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .summary-label {
+            font-size: 11px;
+            opacity: 0.95;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .add-vendor-section {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin-bottom: 16px;
+            position: sticky;
+            top: calc(12px + 200px);
+            z-index: 99;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        input, select {
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-color: white;
+            padding-right: 40px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-height: 50px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .vendors-list {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .vendor-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .vendor-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .vendor-type {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 6px;
+        }
+
+        .payment-method-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #11998e;
+            color: white;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .payment-method-badge.cash {
+            background: #38ef7d;
+        }
+
+        .payment-method-badge.zelle {
+            background: #764ba2;
+        }
+
+        .payment-method-badge.cc {
+            background: #f5576c;
+        }
+
+        .payment-method-badge.check {
+            background: #ffa726;
+        }
+
+        .payment-history {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .payment-history-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .payment-amount {
+            font-weight: 600;
+            color: #38ef7d;
+            margin-right: 8px;
+            font-size: 15px;
+        }
+
+        .payment-date {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .vendor-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat-box {
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value.positive {
+            color: #38ef7d;
+        }
+
+        .stat-value.negative {
+            color: #f5576c;
+        }
+
+        .payment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .payment-form input,
+        .payment-form select {
+            flex: 1;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            padding: 12px 18px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+            padding: 12px 18px;
+            font-size: 14px;
+            min-height: 44px;
+            margin-right: 8px;
+        }
+
+        .add-payment-btn {
+            padding: 14px 20px;
+            font-size: 15px;
+            min-height: 50px;
+        }
+
+        .edit-mode {
+            background: #fff3e0;
+            border-left-color: #ffa726;
+        }
+
+        .edit-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 14px 18px;
+            font-size: 15px;
+            min-height: 50px;
+            flex: 1;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%);
+            padding: 14px 18px;
+            font-size: 15px;
+            min-height: 50px;
+            flex: 1;
+        }
+
+        .no-vendors {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 14px;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                top: 10px;
+            }
+
+            .add-vendor-section {
+                top: calc(10px + 200px);
+            }
+
+            .vendor-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-form {
+                flex-direction: column;
+            }
+            
+            .payment-form input {
+                width: 100%;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 92%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 18px 20px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-body p {
+            line-height: 1.5;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+            padding: 0 4px;
+            min-width: 32px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover,
+        .close:active {
+            color: #000;
+        }
+
+        .backup-item {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #667eea;
+            min-height: 60px;
+            touch-action: manipulation;
+        }
+
+        .backup-item:active {
+            background: #e9ecef;
+            transform: scale(0.98);
+        }
+
+        .backup-date {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .backup-info {
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; gap: 10px;">
+                <h1 style="margin: 0; flex: 1;">🏗️ 8806 Construction Payment Tracker</h1>
+                <button onclick="showRestoreModal()" style="background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%); padding: 12px 16px; font-size: 14px; min-height: 44px; white-space: nowrap;">
+                    ⏮️ Restore
+                </button>
+            </div>
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-label">Total Agreed</div>
+                    <div class="summary-value" id="totalAgreed">$0</div>
+                </div>
+                <div class="summary-card green">
+                    <div class="summary-label">Total Paid</div>
+                    <div class="summary-value" id="totalPaid">$0</div>
+                </div>
+                <div class="summary-card orange">
+                    <div class="summary-label">Total Owed</div>
+                    <div class="summary-value" id="totalOwed">$0</div>
+                </div>
+                <div class="summary-card blue">
+                    <div class="summary-label">Total Vendors</div>
+                    <div class="summary-value" id="totalVendors">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-vendor-section">
+            <h2>➕ Add New Vendor</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Vendor Name</label>
+                    <input type="text" id="vendorName" placeholder="e.g., Ace Foundation">
+                </div>
+                <div class="form-group">
+                    <label>Work Type</label>
+                    <select id="workType">
+                        <option value="Labor Only">Labor Only</option>
+                        <option value="Material Only">Material Only</option>
+                        <option value="Labor & Material">Labor & Material</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Agreed Amount ($)</label>
+                    <input type="number" id="agreedAmount" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Initial Payment ($)</label>
+                    <input type="number" id="initialPayment" placeholder="0.00" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="paymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Zelle">Zelle</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Check">Check</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addVendor()">Add Vendor</button>
+        </div>
+
+        <div class="vendors-list">
+            <h2>📋 Vendor List</h2>
+            <div id="vendorsList">
+                <div class="no-vendors">No vendors added yet. Add your first vendor above!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Modal -->
+    <div id="restoreModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="margin: 0;">📅 Restore from Backup</h2>
+                <span class="close" onclick="closeRestoreModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; margin-bottom: 20px;">Select a backup date to restore your data. Backups are created automatically each day you use the tracker.</p>
+                <div id="backupList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vendors = [];
+        let backups = [];
+
+        // Load data from localStorage on page load
+        window.onload = function() {
+            // Load backups
+            const savedBackups = localStorage.getItem('constructionBackups');
+            if (savedBackups) {
+                backups = JSON.parse(savedBackups);
+            }
+
+            // Clear old data and start fresh with new vendor list
+            vendors = [
+                {
+                    id: Date.now() + 1,
+                    name: 'Windows Material',
+                    workType: 'Material Only',
+                    agreedAmount: 5918.00,
+                    paidAmount: 0,
+                    payments: []
+                },
+                {
+                    id: Date.now() + 2,
+                    name: 'Honey Bucket',
+                    workType: 'Material Only',
+                    agreedAmount: 192.85,
+                    paidAmount: 192.85,
+                    payments: [{ amount: 192.85, date: new Date().toISOString(), method: 'Credit Card' }]
+                },
+                {
+                    id: Date.now() + 3,
+                    name: 'Henry Framer',
+                    workType: 'Labor Only',
+                    agreedAmount: 27300.00,
+                    paidAmount: 4000.00,
+                    payments: [{ amount: 4000.00, date: new Date().toISOString(), method: 'Zelle' }]
+                },
+                {
+                    id: Date.now() + 4,
+                    name: 'Builders First Resource',
+                    workType: 'Material Only',
+                    agreedAmount: 50856.14,
+                    paidAmount: 29272.08,
+                    payments: [
+                        { amount: 19798.00, date: new Date().toISOString(), method: 'Credit Card' },
+                        { amount: 9474.08, date: new Date().toISOString(), method: 'Credit Card' }
+                    ]
+                },
+                {
+                    id: Date.now() + 5,
+                    name: 'American Trusses',
+                    workType: 'Material Only',
+                    agreedAmount: 9705.00,
+                    paidAmount: 9705.00,
+                    payments: [{ amount: 9705.00, date: new Date().toISOString(), method: 'Credit Card' }]
+                },
+                {
+                    id: Date.now() + 6,
+                    name: 'Labor Lunch Foundation',
+                    workType: 'Labor & Material',
+                    agreedAmount: 110.00,
+                    paidAmount: 110.00,
+                    payments: [{ amount: 110.00, date: new Date().toISOString(), method: 'Credit Card' }]
+                },
+                {
+                    id: Date.now() + 7,
+                    name: 'Habib Engineer Inspection',
+                    workType: 'Labor Only',
+                    agreedAmount: 300.00,
+                    paidAmount: 300.00,
+                    payments: [{ amount: 300.00, date: new Date().toISOString(), method: 'Zelle' }]
+                },
+                {
+                    id: Date.now() + 8,
+                    name: 'Waseem/Rene Plumber',
+                    workType: 'Labor Only',
+                    agreedAmount: 4000.00,
+                    paidAmount: 4000.00,
+                    payments: [{ amount: 4000.00, date: new Date().toISOString(), method: 'Zelle' }]
+                },
+                {
+                    id: Date.now() + 9,
+                    name: 'Alfa Foundation',
+                    workType: 'Labor & Material',
+                    agreedAmount: 33500.00,
+                    paidAmount: 33500.00,
+                    payments: [
+                        { amount: 20000.00, date: new Date().toISOString(), method: 'Cash' },
+                        { amount: 13500.00, date: new Date().toISOString(), method: 'Zelle' }
+                    ]
+                }
+            ];
+            saveData();
+            renderVendors();
+            updateSummary();
+            createDailyBackup();
+        };
+
+        function saveData() {
+            localStorage.setItem('constructionVendors', JSON.stringify(vendors));
+        }
+
+        function createDailyBackup() {
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            
+            // Check if we already have a backup for today
+            const existingBackup = backups.find(b => b.date === today);
+            
+            if (!existingBackup) {
+                // Create new backup
+                backups.push({
+                    date: today,
+                    data: JSON.parse(JSON.stringify(vendors)) // Deep copy
+                });
+                
+                // Keep only last 30 days of backups
+                if (backups.length > 30) {
+                    backups = backups.slice(-30);
+                }
+                
+                localStorage.setItem('constructionBackups', JSON.stringify(backups));
+            }
+        }
+
+        function showRestoreModal() {
+            if (backups.length === 0) {
+                alert('No backups available yet. Backups are created automatically each day you use the tracker.');
+                return;
+            }
+
+            const modal = document.getElementById('restoreModal');
+            const backupList = document.getElementById('backupList');
+            
+            // Sort backups by date descending (newest first)
+            const sortedBackups = [...backups].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            backupList.innerHTML = sortedBackups.map(backup => {
+                const backupDate = new Date(backup.date);
+                const formattedDate = backupDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                const vendorCount = backup.data.length;
+                const totalAmount = backup.data.reduce((sum, v) => sum + v.agreedAmount, 0);
+                
+                return `
+                    <div class="backup-item" onclick="restoreFromBackup('${backup.date}')">
+                        <div class="backup-date">${formattedDate}</div>
+                        <div class="backup-info">
+                            ${vendorCount} vendors • ${formatCurrency(totalAmount)} total
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            modal.style.display = 'block';
+        }
+
+        function closeRestoreModal() {
+            document.getElementById('restoreModal').style.display = 'none';
+        }
+
+        function restoreFromBackup(date) {
+            if (!confirm(`Are you sure you want to restore data from ${date}? This will replace your current data.`)) {
+                return;
+            }
+            
+            const backup = backups.find(b => b.date === date);
+            if (backup) {
+                vendors = JSON.parse(JSON.stringify(backup.data)); // Deep copy
+                saveData();
+                renderVendors();
+                updateSummary();
+                closeRestoreModal();
+                alert('Data restored successfully!');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('restoreModal');
+            if (event.target === modal) {
+                closeRestoreModal();
+            }
+        }
+
+        function addVendor() {
+            const name = document.getElementById('vendorName').value.trim();
+            const workType = document.getElementById('workType').value;
+            const agreedAmount = parseFloat(document.getElementById('agreedAmount').value) || 0;
+            const initialPayment = parseFloat(document.getElementById('initialPayment').value) || 0;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            if (!name || agreedAmount <= 0) {
+                alert('Please enter a vendor name and agreed amount');
+                return;
+            }
+
+            const vendor = {
+                id: Date.now(),
+                name: name,
+                workType: workType,
+                agreedAmount: agreedAmount,
+                paidAmount: initialPayment,
+                payments: initialPayment > 0 ? [{ amount: initialPayment, date: new Date().toISOString(), method: paymentMethod }] : []
+            };
+
+            vendors.push(vendor);
+            saveData();
+            createDailyBackup();
+            renderVendors();
+            updateSummary();
+
+            // Clear form
+            document.getElementById('vendorName').value = '';
+            document.getElementById('agreedAmount').value = '';
+            document.getElementById('initialPayment').value = '0';
+        }
+
+        function addPayment(vendorId) {
+            const amount = parseFloat(document.getElementById(`payment-${vendorId}`).value) || 0;
+            const method = document.getElementById(`payment-method-${vendorId}`).value;
+            
+            if (amount <= 0) {
+                alert('Please enter a valid payment amount');
+                return;
+            }
+
+            const vendor = vendors.find(v => v.id === vendorId);
+            if (vendor) {
+                vendor.paidAmount += amount;
+                vendor.payments.push({ amount: amount, date: new Date().toISOString(), method: method });
+                saveData();
+                createDailyBackup();
+                renderVendors();
+                updateSummary();
+            }
+        }
+
+        function deleteVendor(vendorId) {
+            if (confirm('Are you sure you want to delete this vendor?')) {
+                vendors = vendors.filter(v => v.id !== vendorId);
+                saveData();
+                createDailyBackup();
+                renderVendors();
+                updateSummary();
+            }
+        }
+
+        function editVendor(vendorId) {
+            const vendor = vendors.find(v => v.id === vendorId);
+            if (!vendor) return;
+
+            // Store original values for cancel
+            vendor.editing = true;
+            vendor.originalValues = {
+                name: vendor.name,
+                workType: vendor.workType,
+                agreedAmount: vendor.agreedAmount
+            };
+
+            renderVendors();
+        }
+
+        function saveEdit(vendorId) {
+            const vendor = vendors.find(v => v.id === vendorId);
+            if (!vendor) return;
+
+            const newName = document.getElementById(`edit-name-${vendorId}`).value.trim();
+            const newWorkType = document.getElementById(`edit-workType-${vendorId}`).value;
+            const newAgreedAmount = parseFloat(document.getElementById(`edit-agreed-${vendorId}`).value) || 0;
+
+            if (!newName || newAgreedAmount <= 0) {
+                alert('Please enter a valid vendor name and agreed amount');
+                return;
+            }
+
+            vendor.name = newName;
+            vendor.workType = newWorkType;
+            vendor.agreedAmount = newAgreedAmount;
+            vendor.editing = false;
+            delete vendor.originalValues;
+
+            saveData();
+            createDailyBackup();
+            renderVendors();
+            updateSummary();
+        }
+
+        function cancelEdit(vendorId) {
+            const vendor = vendors.find(v => v.id === vendorId);
+            if (!vendor) return;
+
+            vendor.name = vendor.originalValues.name;
+            vendor.workType = vendor.originalValues.workType;
+            vendor.agreedAmount = vendor.originalValues.agreedAmount;
+            vendor.editing = false;
+            delete vendor.originalValues;
+
+            renderVendors();
+        }
+
+        function formatCurrency(amount) {
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderVendors() {
+            const container = document.getElementById('vendorsList');
+            
+            if (vendors.length === 0) {
+                container.innerHTML = '<div class="no-vendors">No vendors added yet. Add your first vendor above!</div>';
+                return;
+            }
+
+            // Sort vendors: unpaid/partially paid by amount owed (highest first), then fully paid in order entered
+            const sortedVendors = [...vendors].sort((a, b) => {
+                const aOwed = a.agreedAmount - a.paidAmount;
+                const bOwed = b.agreedAmount - b.paidAmount;
+                
+                // If both have outstanding balances, sort by amount owed (highest first)
+                if (aOwed > 0 && bOwed > 0) {
+                    return bOwed - aOwed; // Higher owed amount comes first
+                }
+                
+                // If both are fully paid, maintain original order
+                if (aOwed === 0 && bOwed === 0) {
+                    return 0;
+                }
+                
+                // If a has outstanding balance, it comes first
+                if (aOwed > 0) return -1;
+                
+                // If b has outstanding balance, it comes first
+                return 1;
+            });
+
+            container.innerHTML = sortedVendors.map(vendor => {
+                const owed = vendor.agreedAmount - vendor.paidAmount;
+                const owedClass = owed > 0 ? 'negative' : 'positive';
+                
+                // Helper function to get payment method badge class
+                const getMethodClass = (method) => {
+                    if (method === 'Cash') return 'cash';
+                    if (method === 'Zelle') return 'zelle';
+                    if (method === 'Credit Card') return 'cc';
+                    if (method === 'Check') return 'check';
+                    return '';
+                };
+
+                // Generate payment history HTML
+                const paymentHistory = vendor.payments && vendor.payments.length > 0 ? `
+                    <div class="payment-history">
+                        <div class="payment-history-title">Payment History</div>
+                        ${vendor.payments.map(payment => {
+                            const paymentDate = new Date(payment.date);
+                            const formattedDate = paymentDate.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                            });
+                            return `
+                                <div class="payment-item">
+                                    <div>
+                                        <span class="payment-amount">${formatCurrency(payment.amount)}</span>
+                                        <span class="payment-date">${formattedDate}</span>
+                                    </div>
+                                    <span class="payment-method-badge ${getMethodClass(payment.method)}">${payment.method}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : '';
+                
+                // Edit mode
+                if (vendor.editing) {
+                    return `
+                        <div class="vendor-card edit-mode">
+                            <div class="vendor-header">
+                                <h3 style="color: #ffa726; margin: 0;">✏️ Editing Vendor</h3>
+                            </div>
+                            
+                            <div class="edit-form">
+                                <div class="form-group">
+                                    <label>Vendor Name</label>
+                                    <input type="text" id="edit-name-${vendor.id}" value="${vendor.name}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Work Type</label>
+                                    <select id="edit-workType-${vendor.id}">
+                                        <option value="Labor Only" ${vendor.workType === 'Labor Only' ? 'selected' : ''}>Labor Only</option>
+                                        <option value="Material Only" ${vendor.workType === 'Material Only' ? 'selected' : ''}>Material Only</option>
+                                        <option value="Labor & Material" ${vendor.workType === 'Labor & Material' ? 'selected' : ''}>Labor & Material</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Agreed Amount ($)</label>
+                                    <input type="number" id="edit-agreed-${vendor.id}" value="${vendor.agreedAmount}" step="0.01">
+                                </div>
+                            </div>
+
+                            <div class="vendor-stats">
+                                <div class="stat-box">
+                                    <div class="stat-label">Current Paid Amount</div>
+                                    <div class="stat-value positive">${formatCurrency(vendor.paidAmount)}</div>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <button class="save-btn" onclick="saveEdit(${vendor.id})">Save Changes</button>
+                                <button class="cancel-btn" onclick="cancelEdit(${vendor.id})">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Normal view mode
+                return `
+                    <div class="vendor-card">
+                        <div class="vendor-header">
+                            <div>
+                                <div class="vendor-name">${vendor.name}</div>
+                                <span class="vendor-type">${vendor.workType}</span>
+                            </div>
+                            <div class="button-group">
+                                <button class="edit-btn" onclick="editVendor(${vendor.id})">Edit</button>
+                                <button class="delete-btn" onclick="deleteVendor(${vendor.id})">Delete</button>
+                            </div>
+                        </div>
+                        
+                        <div class="vendor-stats">
+                            <div class="stat-box">
+                                <div class="stat-label">Agreed Amount</div>
+                                <div class="stat-value">${formatCurrency(vendor.agreedAmount)}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Paid So Far</div>
+                                <div class="stat-value positive">${formatCurrency(vendor.paidAmount)}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Still Owed</div>
+                                <div class="stat-value ${owedClass}">${formatCurrency(owed)}</div>
+                            </div>
+                        </div>
+
+                        ${paymentHistory}
+
+                        <div class="payment-form">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Add Payment</label>
+                                <input type="number" id="payment-${vendor.id}" placeholder="Enter amount" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Method</label>
+                                <select id="payment-method-${vendor.id}">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Zelle">Zelle</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Check">Check</option>
+                                </select>
+                            </div>
+                            <button class="add-payment-btn" onclick="addPayment(${vendor.id})">Add Payment</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSummary() {
+            const totalAgreed = vendors.reduce((sum, v) => sum + v.agreedAmount, 0);
+            const totalPaid = vendors.reduce((sum, v) => sum + v.paidAmount, 0);
+            const totalOwed = totalAgreed - totalPaid;
+
+            document.getElementById('totalAgreed').textContent = formatCurrency(totalAgreed);
+            document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
+            document.getElementById('totalOwed').textContent = formatCurrency(totalOwed);
+            document.getElementById('totalVendors').textContent = vendors.length;
+        }
+    </script>
+</body>
+</html>
