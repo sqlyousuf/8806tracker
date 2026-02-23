@@ -1,0 +1,10 @@
+{
+  "name": "8806tracker",
+  "version": "1.0.0",
+  "description": "Construction Payment Tracker with Google Sheets sync",
+  "type": "module",
+  "dependencies": {
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^118.0.0"
+  }
+}

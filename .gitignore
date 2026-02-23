@@ -5,6 +5,8 @@ node_modules/
 .env.local
 .env.*.local
 *.json
+!package.json
+!vercel.json
 !.example
 *.log
 build/
